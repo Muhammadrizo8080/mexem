@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Amallar</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1em 20px;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin-left: 1em;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5em 1em;
+            border-radius: 5px;
+        }
+
+        nav ul li a:hover {
+            background-color: #555;
+        }
+
+        main {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-gap: 20px;
+        }
+
+        .crud-section h2, .form-section h2 {
+            text-align: center;
+            margin-bottom: 1em;
+        }
+
+        #data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #data-table th, #data-table td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        #data-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .form-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="hidden"] {
+            width: calc(100% - 16px);
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 0.5em;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        #cancel-edit {
+            background-color: #d9534f;
+        }
+
+        #cancel-edit:hover {
+            background-color: #c9302c;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1em;
+            background-color: #333;
+            color: #fff;
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CRUD Amallar</h1>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="crud-section">
+            <h2>Ma'lumotlar</h2>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nomi</th>
+                        <th>Narxi</th>
+                        <th>Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body">
+                    </tbody>
+            </table>
+        </section>
+        <section class="form-section">
+            <h2>Yangi Ma'lumot Qo'shish/Tahrirlash</h2>
+            <form id="crud-form">
+                <div class="form-group">
+                    <label for="name">Nomi:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Narxi:</label>
+                    <input type="number" id="price" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="d-price">chegrma:</label>
+                    <input type="number" id="d-price" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="donasi">donasi:</label>
+                    <input type="number" id="stock_quantity" name="price" required>
+                </div>
+                <input type="hidden" id="id" name="id">
+                <button type="submit">Saqlash</button>
+                <button type="button" id="cancel-edit" style="display:none;">Bekor qilish</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Kompaniya nomi</p>
+    </footer>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        const form = document.getElementById('crud-form');
+        form.addEventListener('submit', saveData);
+        document.getElementById('cancel-edit').addEventListener('click', clearForm);
+    });
+
+    function loadData() {
+        fetch('http://127.0.0.1:8000/api/products/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Xatolik: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => displayData(data))
+            .catch(error => console.error('Mahsulotlarni olishda xatolik:', error));
+    }
+
+    function displayData(data) {
+        const tbody = document.getElementById('data-body');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${item.id}</td>
+                <td>${item.name}</td>
+                <td>${item.price}</td>
+                <td>
+                    <button onclick="editData('${item.id}')">Tahrirlash</button>
+                    <button onclick="deleteData('${item.id}')" disabled>O'chirish</button>
+                </td>
+            `;
+        });
+    }
+
+    function saveData(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const price = document.getElementById('price').value;
+        const discount_price = document.getElementById('d-price').value;
+        const stock = document.getElementById('stock_quantity').value;
+        const id = document.getElementById('id').value;
+
+        const newData = {
+            name: name,
+            price: price,
+            discount_price: discount_price,
+            stock_quantity: stock
+        };
+
+        if (id) {
+            // Tahrirlash funksiyasi keyin qo‘shiladi
+            console.log('Tahrirlash uchun funksiya keyin qo\'shiladi:', id, newData);
+            clearForm();
+        } else {
+            fetch('http://127.0.0.1:8000/api/products/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newData),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Yangi mahsulot qo'shishda xatolik: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(() => {
+                loadData();
+                clearForm();
+            })
+            .catch(error => console.error('Yangi mahsulot qo\'shishda xatolik:', error));
+        }
+    }
+
+    function editData(id) {
+        alert('Tahrirlash funksiyasi keyin qo\'shiladi');
+    }
+
+    function deleteData(id) {
+        alert('O\'chirish funksiyasi keyin qo\'shiladi');
+    }
+
+    function clearForm() {
+        document.getElementById('crud-form').reset();
+        document.getElementById('id').value = '';
+        document.getElementById('cancel-edit').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

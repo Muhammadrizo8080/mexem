@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="../asserts/css/style.css">
+    </head>
+<body>
+ <header>
+        <h1>Boshqaruv Paneli</h1>
+        <div class="user-info">
+            <span id="username-display"></span>
+            <button id="logout-btn">Chiqish</button>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#">Bosh sahifa</a></li>
+                <li><a href="#">Mahsulotlar</a></li>
+                <li><a href="#">Buyurtmalar</a></li>
+                <li><a href="crud.html">CRUD Amallar</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="overview">
+            <h2>Umumiy Ko'rinish</h2>
+            <div class="widget">
+                <h3>Jami Buyurtmalar</h3>
+                <p class="number">1,250</p>
+                <p class="description">Oxirgi oy</p>
+            </div>
+            <div class="widget">
+                <h3>Yangi Mijozlar</h3>
+                <p class="number">150</p>
+                <p class="description">Oxirgi hafta</p>
+            </div>
+            <div class="widget">
+                <h3>O'rtacha Buyurtma Summasi</h3>
+                <p class="number">$75.50</p>
+                <p class="description">Hozirgi chorak</p>
+            </div>
+            <div class="widget">
+                <h3>Eng Ko'p Sotilgan Mahsulot</h3>
+                <p class="text">Futbolka</p>
+                <p class="description">O'tgan hafta</p>
+            </div>
+        </section>
+
+            <section class="charts">
+            <h2>Grafiklar</h2>
+            <div class="chart-container">
+                <h3>Sotuvlar Dinamikasi</h3>
+                <canvas id="sales-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Foydalanuvchilar Faolligi</h3>
+                <canvas id="user-activity-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Mahsulot Zaxiralari</h3>
+                <canvas id="inventory-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Xaridorlar Demografiyasi</h3>
+                <canvas id="customer-demographics-chart"></canvas>
+            </div>
+</section>
+              <section class="recent-orders">
+            <h2>Oxirgi Buyurtmalar</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Buyurtma ID</th>
+                        <th>Mijoz</th>
+                        <th>Sana</th>
+                        <th>Status</th>
+                        <th>Umumiy Summa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#1001</td>
+                        <td>John Doe</td>
+                        <td>2025-05-27</td>
+                        <td>Yetkazildi</td>
+                        <td>$85.00</td>
+                    </tr>
+                    <tr>
+                        <td>#1002</td>
+                        <td>Jane Smith</td>
+                        <td>2025-05-26</td>
+                        <td>Jo'natildi</td>
+                        <td>$120.50</td>
+                    </tr>
+                    <tr>
+                        <td>#1003</td>
+                        <td>Peter Jones</td>
+                        <td>2025-05-26</td>
+                        <td>Jarayonda</td>
+                        <td>$55.75</td>
+                    </tr>
+                    <tr>
+                        <td>#1004</td>
+                        <td>Alice Brown</td>
+                        <td>2025-05-25</td>
+                        <td>Yetkazildi</td>
+                        <td>$92.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Kompaniya nomi</p>
+    </footer>
+     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <script type="">
+        document.addEventListener('DOMContentLoaded', () => {
+    const signinForm = document.getElementById('signin-form');
+    if (signinForm) {
+        signinForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Standart submit harakatini bekor qilish
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            // Backendga so'rov yuborish
+            fetch('http://127.0.0.1:8000/api/token/', { // Backend login API manzilingizni kiriting
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username: username, password: password }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Agar javob xatolik bo'lsa (masalan, 401 Unauthorized)
+                    throw new Error(`Xatolik: ${response.status}`);
+                }
+                return response.json(); // Javobni JSON formatida o'qish
+            })
+            .then(data => {
+                // Backenddan muvaffaqiyatli javob keldi
+                console.log('Muvaffaqiyatli kirish:', data);
+
+                // Agar backend token qaytarsa, uni localStorage ga saqlash mumkin
+                if (data.token) {
+                    localStorage.setItem('authToken', data.token);
+                }
+                localStorage.setItem('foydalanuvchi_nomi', username);
+                alert('Muvaffaqiyatli kirish!');
+                window.location.href = 'dashboard.html';
+            })
+            .catch((error) => {
+                // So'rovda xatolik yuz berdi
+                console.error('Kirishda xatolik:', error);
+                alert('Kirishda xatolik yuz berdi. Iltimos, ma\'lumotlaringizni tekshiring.');
+            });
+        });
+    }
+
+    // Sahifa yuklanganda saqlangan foydalanuvchi nomini tekshirish (misol uchun)
+    const saqlanganFoydalanuvchi = localStorage.getItem('foydalanuvchi_nomi');
+    if (saqlanganFoydalanuvchi) {
+        console.log('Saqlangan foydalanuvchi:', saqlanganFoydalanuvchi);
+        // Agar foydalanuvchi avval kirgan bo'lsa, uni to'g'ridan-to'g'ri dashboardga yo'naltirish mumkin:
+        window.location.href = 'dashboard.html';
+    }
+});
+
+     </script>
+    <script type="text/javascript" > 
+// Bu faylda boshqaruv panelining dinamik funksiyalari yoziladi
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Dashboard script yuklandi!');
+
+    // Grafikalar uchun ma'lumotlarni olish va ularni chizish funksiyalari
+
+    // 1. Sotuvlar dinamikasi (Sales Dynamics)
+    fetch('http://127.0.0.1:8000/api/products/') // Haqiqiy API manzilini kiriting
+        .then(response => response.json())
+        .then(data => {
+            renderSalesChart(data);
+        })
+        .catch(error => console.error('Sotuvlar ma\'lumotlarini olishda xatolik:', error));
+
+    // 2. Foydalanuvchilar faolligi (User Activity)
+    fetch('http://127.0.0.1:8000/api/products/') // Haqiqiy API manzilini kiriting
+        .then(response => response.json())
+        .then(data => {
+            renderUserActivityChart(data);
+        })
+        .catch(error => console.error('Foydalanuvchilar faolligi ma\'lumotlarini olishda xatolik:', error));
+
+    // 3. Mahsulot zaxiralari (Product Inventory)
+    fetch('http://127.0.0.1:8000/api/orders/') // Haqiqiy API manzilini kiriting
+        .then(response => response.json())
+        .then(data => {
+            renderInventoryChart(data);
+        })
+        .catch(error => console.error('Mahsulot zaxiralari ma\'lumotlarini olishda xatolik:', error));
+
+    // 4. Xaridorlar demografiyasi (Customer Demographics)
+    fetch('http://127.0.0.1:8000/api/orders/') // Haqiqiy API manzilini kiriting
+        .then(response => response.json())
+        .then(data => {
+            renderCustomerDemographicsChart(data);
+        })
+        .catch(error => console.error('Xaridorlar demografiyasi ma\'lumotlarini olishda xatolik:', error));
+});
+
+// Grafikalar chizish funksiyalari (Chart.js dan foydalaniladi deb taxmin qilamiz)
+
+function renderSalesChart(data) {
+    const ctx = document.getElementById('sales-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels, // Backenddan kelgan sanalar yoki davrlar
+            datasets: [{
+                label: 'Sotuvlar',
+                data: data.values, // Backenddan kelgan sotuvlar miqdori
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            // Grafik sozlamalari (masalan, o'qlar, teglarni ko'rsatish va h.k.)
+        }
+    });
+}
+
+function renderUserActivityChart(data) {
+    const ctx = document.getElementById('user-activity-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels, // Backenddan kelgan vaqtlar yoki sanalar
+            datasets: [{
+                label: 'Faol Foydalanuvchilar',
+                data: data.values, // Backenddan kelgan foydalanuvchilar soni
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            // Grafik sozlamalari
+        }
+    });
+}
+
+function renderInventoryChart(data) {
+    const ctx = document.getElementById('inventory-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels, // Backenddan kelgan mahsulot nomlari
+            datasets: [{
+                label: 'Zaxiradagi Mahsulotlar',
+                data: data.values, // Backenddan kelgan zaxira miqdori
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            // Grafik sozlamalari
+        }
+    });
+}
+
+function renderCustomerDemographicsChart(data) {
+    const ctx = document.getElementById('customer-demographics-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels, // Backenddan kelgan demografik guruhlar
+            datasets: [{
+                label: 'Yangi Xaridorlar',
+                data: data.values, // Backenddan kelgan xaridorlar soni
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            // Grafik sozlamalari
+        }
+    });
+}
+    </script>
+    <script type="text/javascript">
+        
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Dashboard script yuklandi!');
+
+    // Foydalanuvchi ismini ko'rsatish
+    const usernameDisplay = document.getElementById('username-display');
+    const username = localStorage.getItem('foydalanuvchi_nomi');
+    if (username) {
+        usernameDisplay.textContent = `Salom, ${username}!`;
+    } else {
+        // Agar foydalanuvchi nomi topilmasa, kirish sahifasiga yo'naltirish
+        window.location.href = 'signin.html';
+    }
+
+    // Chiqish tugmasi
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('foydalanuvchi_nomi');
+            localStorage.removeItem('authToken'); // Agar sizda token bo'lsa, uni ham o'chiring
+            window.location.href = 'signin.html';
+        });
+    }
+
+    // Grafikalar uchun ma'lumotlarni olish va ularni chizish funksiyalari
+    fetch('http://127.0.0.1:8000/api/user-option/')
+        .then(response => response.json())
+        .then(data => {
+            renderSalesChart(data);
+        })
+        .catch(error => console.error('Sotuvlar ma\'lumotlarini olishda xatolik:', error));
+
+    fetch('http://127.0.0.1:8000/api/user-option/')
+        .then(response => response.json())
+        .then(data => {
+            renderUserActivityChart(data);
+        })
+        .catch(error => console.error('Foydalanuvchilar faolligi ma\'lumotlarini olishda xatolik:', error));
+
+    fetch('http://127.0.0.1:8000/api/user-option/')
+        .then(response => response.json())
+        .then(data => {
+            renderInventoryChart(data);
+        })
+        .catch(error => console.error('Mahsulot zaxiralari ma\'lumotlarini olishda xatolik:', error));
+
+    fetch('http://127.0.0.1:8000/api/user-option/')
+        .then(response => response.json())
+        .then(data => {
+            renderCustomerDemographicsChart(data);
+        })
+        .catch(error => console.error('Xaridorlar demografiyasi ma\'lumotlarini olishda xatolik:', error));
+});
+
+function renderSalesChart(data) {
+    const ctx = document.getElementById('sales-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Sotuvlar',
+                data: data.values,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {}
+    });
+}
+
+function renderUserActivityChart(data) {
+    const ctx = document.getElementById('user-activity-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Faol Foydalanuvchilar',
+                data: data.values,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {}
+    });
+}
+
+function renderInventoryChart(data) {
+    const ctx = document.getElementById('inventory-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Zaxiradagi Mahsulotlar',
+                data: data.values,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {}
+    });
+}
+
+function renderCustomerDemographicsChart(data) {
+    const ctx = document.getElementById('customer-demographics-chart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Yangi Xaridorlar',
+                data: data.values,
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {}
+    });
+}
+    </script>
+    </body>
+</html>
