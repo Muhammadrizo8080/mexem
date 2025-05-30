@@ -28,7 +28,7 @@ jobs:
             if [ -d "test_-" ]; then
               cd test_- && git pull
             else
-              git clone https://github.com/nurulloasawear/test_-.git
+              git clone https://github.com/Muhammadrizo8080/mexem.git
               cd test_-
             fi
 
